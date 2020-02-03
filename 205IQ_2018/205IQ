@@ -1,0 +1,38 @@
+#!/usr/bin/env php
+<?php
+
+spl_autoload_register(function ($class_name) {
+  include $class_name . '.php';
+});
+
+function print_usage()
+{
+  $usage = "USAGE\n\t./205IQ u s [IQ1] [IQ2]\n";
+  $usage .= "\nDESCRIPTION\n\t";
+  $usage .= "u\tmean\n\t";
+  $usage .= "s\tstandard deviation\n\t";
+  $usage .= "IQ1\tminimum IQ\n\t";
+  $usage .= "IQ2\tmaximum IQ\n";
+  echo $usage;
+}
+
+function index($argc, $argv)
+{
+  if ($argc == 2 && strcmp($argv[1], "-h") == 0)
+    return (print_usage());
+  if ($argc < 3 || $argc > 5)
+    return (84);
+
+  $obj = new IQ();
+  if ($argc == 3)
+    return ($obj->create_data($argv));
+  if ($argc == 4)
+    return ($obj->minimal_calcul($argv));
+  if ($argc == 5)
+    return ($obj->interval_calcul($argv));
+}
+
+$ret = index($argc, $argv);
+
+exit($ret);
+?>

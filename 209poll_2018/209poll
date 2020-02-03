@@ -1,0 +1,37 @@
+#!/usr/bin/env php
+<?php
+
+spl_autoload_register(function ($class_name) {
+  include $class_name . '.php';
+});
+
+function print_usage()
+{
+  $usage = "USAGE\n\t./209 pSize sSize p\n";
+  $usage .= "\nDESCRIPTION\n\t";
+  $usage .= "pSize\tsize of the population\n";
+  $usage .= "\tsSize\tsize of the sample (supposed to be representative)\n";
+  $usage .= "\t\p\tpercentage of voting intentions for a specific candidate\n";
+  echo $usage;
+  return (0);
+}
+
+function index($argc, $argv)
+{
+  if ($argc == 2 && strcmp($argv[1], "-h") == 0)
+    return (print_usage());
+  if ($argc != 4)
+    return (84);
+
+  $err = new Errors();
+  if ($err->error_handler($argv) == 84)
+    return (84);
+
+  $pol = new Poll($argv);
+  return ($pol->Run());
+}
+
+$ret = index($argc, $argv);
+
+exit($ret);
+?>

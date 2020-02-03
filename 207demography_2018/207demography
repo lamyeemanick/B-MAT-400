@@ -1,0 +1,34 @@
+#!/usr/bin/env php
+<?php
+
+spl_autoload_register(function ($class_name) {
+  include $class_name . '.php';
+});
+
+function print_usage()
+{
+  $usage = "USAGE\n\t./207demography code [...]\n";
+  $usage .= "\nDESCRIPTION\n\t";
+  $usage .= "code\tcountry code\n";
+  echo $usage;
+  return (0);
+}
+
+function index($argc, $argv)
+{
+  if ($argc < 2)
+    return (84);
+  if ($argc == 2 && strcmp($argv[1], "-h") == 0)
+    return (print_usage());
+
+  $file = new OpenFile("207demography_data.csv", ';');
+  $arr = $file->getFileContent();
+
+  $dem = new Demography($arr, $argv);
+  $dem->run();
+}
+
+$ret = index($argc, $argv);
+
+exit($ret);
+?>

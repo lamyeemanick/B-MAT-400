@@ -1,0 +1,213 @@
+#!/usr/bin/env php
+<?php
+function print_usage()
+{
+  $usage = "USAGE\n\t./202unsold a b\n";
+  $usage .= "\nDESCRIPTION\n\t";
+  $usage .= "a\tconstant computed from the past results\n\t";
+  $usage .= "b\tconstant computed from the past results\n";
+  echo $usage;
+}
+
+function error_handling($argv)
+{
+  if (!is_numeric($argv[1]) || !is_numeric($argv[2])) {
+    echo "Arguments must be numerical.\n";
+    return (84);
+  }
+  if (intval($argv[1]) < 50 || intval($argv[2]) < 50) {
+    echo "Arguments must be greater than 50.\n";
+    return (84);
+  }
+  return (0);
+}
+
+function calcul_stats($a, $b, $x, $y)
+{
+  if (((5 * $a - 150) * (5 * $b - 150)) == 0)
+    exit (84);
+  $ret = (($a - $x) * ($b - $y)) / ((5 * $a - 150) * (5 * $b - 150));
+  return ($ret);
+}
+
+function calcul_array($a, $b)
+{
+  $tab = array();
+  for ($x = 1; $x != 6; $x++)
+    for ($y = 1; $y != 6; $y++)
+      $tab[$y - 1][$x - 1] = calcul_stats($a, $b, $x * 10, $y * 10);
+  return ($tab);
+}
+
+function display_line($tab, $line)
+{
+  $i = 0;
+  for ($i = 0; $i != 5; $i++)
+    printf("%.3f\t", $tab[$line][$i]);
+  $tab[$line][$i] = array_sum($tab[$line]);
+  printf("%.3f", $tab[$line][$i]);
+  return ($tab);
+}
+
+function display_last_line($tab)
+{
+  for ($y = 0; $y != 5; $y++) {
+    $law = 0;
+    $x = 0;
+    for ($x = 0; $x != 5; $x++)
+    $law += $tab[$x][$y];
+    $tab[$x][$y] = $law;
+    printf("%.3f\t", $law);
+  }
+  $law = 0;
+  for ($i = 0; $i != 5; $i++)
+    $law += $tab[$i][5];
+  printf("%g\n", $law);
+  return ($tab);
+}
+
+function display_tab($a, $b)
+{
+  $tab = calcul_array($a, $b);
+
+  printf("\tX=10\tX=20\tX=30\tX=40\tX=50\tY law\n");
+  printf("Y=10\t");
+  $tab = display_line($tab, 0);
+  printf("\nY=20\t");
+  $tab = display_line($tab, 1);
+  printf("\nY=30\t");
+  $tab = display_line($tab, 2);
+  printf("\nY=40\t");
+  $tab = display_line($tab, 3);
+  printf("\nY=50\t");
+  $tab = display_line($tab, 4);
+  printf("\nX law\t");
+  $tab = display_last_line($tab);
+  return ($tab);
+}
+
+function add_tab_elem($tab, $i)
+{
+  $sum = 0;
+
+  if ($i <= 4)
+    for ($x = 0, $y = $i; ($y >= 0) && ($x <= $i); $y--, $x++)
+      $sum += $tab[$x][$y];
+  else
+    for ($x = ($i - 4), $y = 4; ($y >= 0) && ($x <= 4); $y--, $x++)
+      $sum += $tab[$x][$y];
+  return ($sum);
+}
+
+function display_z($tab)
+{
+  $tot = array();
+  $i = 0;
+
+  printf("z\t20\t30\t40\t50\t60\t70\t80\t90\t100\ttotal\n");
+  printf("p(Z=z)\t");
+  for ($i = 0; $i != 9; $i++) {
+    $tot[$i] = add_tab_elem($tab, $i);
+    printf("%.3f\t", $tot[$i]);
+  }
+  printf("%g\n", array_sum($tot));
+  $tot[$i] = "EOF";
+  return ($tot);
+}
+
+function X_to_array($tab)
+{
+  $array = array();
+  $i = 0;
+  for ($i = 0; $i != 5; $i++)
+    $array[$i] =  $tab[5][$i];
+  $array[$i] = "EOF";  
+  return ($array);
+}
+
+function Y_to_array($tab)
+{
+  $array = array();
+  $i = 0;
+  for ($i = 0; $i != 5; $i++)
+    $array[$i] =  $tab[$i][5];
+  $array[$i] = "EOF";  
+  return ($array);
+}
+
+function calcul_esp($tab)
+{
+  $res = 0;
+  for ($i = 0; $tab[$i] != "EOF"; $i++)
+    $res += (($i + 1) * 10) * $tab[$i];
+  return ($res);
+}
+
+function calcul_espZ($tab)
+{
+  $res = 0;
+  for ($i = 0; $tab[$i] != "EOF"; $i++)
+    $res += (($i + 2) * 10) * $tab[$i];
+  return ($res);
+}
+
+function calcul_variance($tab)
+{
+  $esp = calcul_esp($tab);
+  $res = 0;
+
+  for ($i = 0; $tab[$i] != "EOF"; $i++)
+    $res += pow(((($i + 1) * 10) - $esp), 2) * $tab[$i];
+  return ($res);
+}
+
+function calcul_varianceZ($tab)
+{
+  $esp = calcul_espZ($tab);
+  $res = 0;
+
+  for ($i = 0; $tab[$i] != "EOF"; $i++)
+    $res += pow(((($i + 2) * 10) - $esp), 2) * $tab[$i];
+  return ($res);
+}
+
+function display_esp_and_var($pond, $tab, $a, $b)
+{
+  $to_calc = array();
+
+  $to_calc = X_to_array($tab);
+  printf("expected value of X:\t%.1f\n", calcul_esp($to_calc));
+  printf("variance of X:\t\t%.1f", calcul_variance($to_calc));
+  $to_calc = Y_to_array($tab);
+  printf("\nexpected value of Y:\t%.1f\n", calcul_esp($to_calc));
+  printf("variance of Y:\t\t%.1f", calcul_variance($to_calc));
+  printf("\nexpected value of Z:\t%.1f\n", calcul_espZ($pond));
+  printf("variance of Z:\t\t%.1f", calcul_varianceZ($pond));
+}
+
+function unsold($a, $b)
+{
+  printf("--------------------------------------------------------------\n");
+  $tab = display_tab($a, $b);
+  printf("--------------------------------------------------------------\n");
+  $pond = display_z($tab);
+  printf("--------------------------------------------------------------\n");
+  display_esp_and_var($pond, $tab, $a, $b);
+  printf("\n--------------------------------------------------------------\n");
+}
+
+function index($argc, $argv)
+{
+  if ($argc != 3) {
+    if ($argc >= 2 && $argv[1] == "-h")
+      print_usage();
+    return (84);
+  }
+  if (error_handling($argv) == 84)
+    return (84);
+  return (unsold(intval($argv[1]), intval($argv[2])));
+}
+
+$ret = index($argc, $argv);
+exit ($ret);
+?>

@@ -1,0 +1,38 @@
+#!/usr/bin/env php
+<?php
+
+spl_autoload_register(function ($class_name) {
+  include $class_name . '.php';
+});
+
+function print_usage()
+{
+  $usage = "USAGE\n\t./208dowels O0 O1 O2 O3 O4 O5 O6 O7 O8\n";
+  $usage .= "\nDESCRIPTION\n\t";
+  $usage .= "Oi\tsize of the observed class\n";
+  echo $usage;
+  return (0);
+}
+
+function index($argc, $argv)
+{
+  if ($argc == 2 && strcmp($argv[1], "-h") == 0)
+    return (print_usage());
+  if ($argc != 10)
+    return (84);
+
+  $err = new Errors();
+  if ($err->error_handler($argv) == 84)
+    return (84);
+
+  $file = new OpenFile("DistributionTable.txt", ' ');
+  $fileContent = $file->getFileContent();
+
+  $dow = new Dowels($argv, $fileContent);
+  return ($dow->run());
+}
+
+$ret = index($argc, $argv);
+
+exit($ret);
+?>

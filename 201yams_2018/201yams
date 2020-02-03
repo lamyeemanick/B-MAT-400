@@ -1,0 +1,212 @@
+#!/usr/bin/env php
+<?php
+function print_usage()
+{
+  $usage = "USAGE\n\t./201yams d1 d2 d3 d4 d5 c\n";
+  $usage .= "\nDESCRIPTION\n\t";
+  $usage .= "\td1\tvalue of the first die (0 if not thrown)\n\t";
+  $usage .= "\td2\tvalue of the second die (0 if not thrown)\n\t";
+  $usage .= "\td3\tvalue of the third die (0 if not thrown)\n\t";
+  $usage .= "\td4\tvalue of the fourth die (0 if not thrown)\n\t";
+  $usage .= "\td5\tvalue of the fifth die (0 if not thrown)\n\t";
+  $usage .= "\tc\texpected combination\n";
+  echo $usage;
+}
+
+function error_handling($argv)
+{
+  if (!is_numeric($argv[1]) || !is_numeric($argv[2]) || !is_numeric($argv[3]) ||
+    !is_numeric($argv[4]) || !is_numeric($argv[5])) {
+    echo "Wrong dices (must be numerical values).\n";
+    return (84);
+  }
+  if (intval($argv[1]) < 0 || intval($argv[2]) < 0 || intval($argv[3]) < 0 || 
+    intval($argv[4]) < 0 || intval($argv[5]) < 0) {
+    echo "Wrong dices (can't be negative numbers).\n";
+    return (84);
+  }
+  if (intval($argv[1]) > 6 || intval($argv[2]) > 6 || intval($argv[3]) > 6 || 
+    intval($argv[4]) > 6 || intval($argv[5]) > 6) {
+    echo "Wrong dices (can't be greater than 6).\n";
+    return (84);
+  }
+  return (0);
+}
+
+function get_occurency($value, $argv)
+{
+  $get = 0;
+  for ($i = 1; $i != 6; $i ++) {
+    if (intval($argv[$i]) == $value)
+      $get += 1;
+  }
+  return ($get);
+}
+
+function factoriel($val)
+{
+  if ($val == 0)
+  return (1);
+  return (($val > 1) ? $val * factoriel($val - 1) : $val);
+}
+
+function how_many($dices, $hihi)
+{
+  $start = ($hihi == 5) ? 1 : 2;
+  $count = 0;
+
+  for ($i = $start; $i <= $start + 4; $i += 1)
+    if ($dices[$i] == 0)
+      $count += 1;
+  return $count;
+}
+
+function combination($want, $in)
+{
+  return (factoriel($in) / (factoriel($in - $want) * factoriel($want)));
+}
+
+function binomial($get, $want)
+{
+  $res = 0;
+  for ($x = $want - $get; $x != (5 - $get + 1); $x ++)
+    $res += combination($x, 5 - $get) * pow(1 / 6, $x) * pow((5 / 6), (5 - $get - $x));
+  return ($res);
+}
+
+function pair($comb, $argv)
+{
+  $percent = 0;
+  if (!$comb[1] || intval($comb[1]) < 1 || intval($comb[1]) > 6 || count($comb) != 2)
+    return (84);
+  $get = get_occurency(intval($comb[1]), $argv);
+  if ($get >= 2)
+    $percent = 100;
+  else
+  $percent = binomial($get, 2) * 100;
+  printf("chances to get a %d pair:  %.2f%%\n", $comb[1], $percent);
+}
+
+function three($comb, $argv)
+{
+  $percent = 0;
+  if (!$comb[1] || intval($comb[1]) < 1 || intval($comb[1]) > 6 || count($comb) != 2)
+    return (84);
+  $get = get_occurency(intval($comb[1]), $argv);
+  if ($get >= 3)
+    $percent = 100;
+  else
+  $percent = binomial($get, 3) * 100;
+  printf("chances to get a %d three-of-a-kind:  %.2f%%\n", $comb[1], $percent);
+}
+
+function four($comb, $argv)
+{
+  $percent = 0;
+  if (!$comb[1] || intval($comb[1]) < 1 || intval($comb[1]) > 6 || count($comb) != 2)
+    return (84);
+  $get = get_occurency(intval($comb[1]), $argv);
+  if ($get >= 4)
+    $percent = 100;
+  else
+    $percent = binomial($get, 4) * 100;
+  printf("chances to get a %d four-of-a-kind:  %.2f%%\n", $comb[1], $percent);
+}
+
+function full($comb, $argv)
+{
+  $percent = 0;
+  if (!$comb[1] || !$comb[2] || intval($comb[1]) < 1 || intval($comb[1]) > 6
+    || intval($comb[2]) < 1 || intval($comb[2]) > 6 || intval($comb[1]) == intval($comb[2])
+    || count($comb) != 3)
+    return (84);
+  $get1 = get_occurency(intval($comb[1]), $argv);
+  $get2 = get_occurency(intval($comb[2]), $argv);
+  if ($get1 == 3 && $get2 == 2)
+    $percent = 100;
+  else {
+    if ($get1 >= 3)
+      $percent = 1 / pow(6, (2 - $get2)) * 100;
+    else if ($get2 >= 2)
+      $percent = 1 / pow(6, (3 - $get1)) * 100;
+    else {
+      $three = factoriel(5 - $get1 - $get2) / (factoriel((5 - $get1 - $get2) - (3 - $get1)) * factoriel(3 - $get2));
+      $percent = ($three * combination(2 - $get2, 2 - $get2)) / pow(6, (5 - $get1 - $get2)) * 100;
+      if ($get1 != $get2) {
+        for ($x = 2; $x <= 5 - $get1 - $get2; $x++)
+          $percent *= $x;
+        }
+      }
+  }
+  printf("chances to get a %d full of %d:  %.2f%%\n", $comb[1], $comb[2], $percent);
+}
+
+function straight($comb, $argv)
+{
+  $percent = 0;
+  if (!$comb[1] || intval($comb[1]) < 5 || intval($comb[1]) > 6 || count($comb) != 2)
+    return (84);
+  $dices = array(1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0);
+  for ($i = 1; $i != 6; $i += 1)
+    $dices[intval($argv[$i])] = 1;
+  if ($comb[1] == 5) {
+    $dices[6] = 0;
+    $relance = how_many($dices, 5);
+  }
+  if ($comb[1] == 6) {
+    $dices[1] = 0;
+    $relance = how_many($dices, 6);
+  }
+  $percent = binomial(5 - $relance, 5) * 100;
+  for ($x = 2; $x <= $relance; $x++)
+    $percent *= $x;
+  printf("chances to get a %d straight:  %.2f%%\n", $comb[1], $percent);
+}
+
+function yams($comb, $argv)
+{
+  $percent = 0;
+  if (!$comb[1] || intval($comb[1]) < 1 || intval($comb[1]) > 6 || count($comb) != 2)
+    return (84);
+  $get = get_occurency(intval($comb[1]), $argv);
+  if ($get >= 5)
+    $percent = 100;
+  else
+    $percent = 1 / pow(6, (5 - $get)) * 100;
+  printf("chances to get a %d yams:  %.2f%%\n", $comb[1], $percent);
+}
+
+function yahtzee($argc, $argv)
+{
+  $bool = 0;
+  $comb = explode("_", $argv[6]);
+  $fct = array("pair", "three", "four", "full", "straight", "yams");
+  
+  for ($x = 0; $x < 6; $x += 1) {
+    if (strcmp($fct[$x], $comb[0]) == 0) {
+      $ret = $fct[$x]($comb, $argv);
+      $bool = 1;
+    }
+  }
+  if ($bool == 0 || $ret == 84) {
+    echo "Wrong combination.\n";
+    return (84);
+  }
+  return ($ret);
+}
+
+function index($argc, $argv)
+{
+  if ($argc != 7) {
+    if ($argc >= 2 && $argv[1] == "-h")
+      print_usage();
+    return (84);
+  }
+  if (error_handling($argv) == 84)
+    return (84);
+  return (yahtzee($argc, $argv));
+}
+
+$ret = index($argc, $argv);
+exit ($ret);
+?>

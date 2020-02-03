@@ -1,0 +1,102 @@
+#!/usr/bin/env php
+<?php
+function print_usage()
+{
+  $usage = "USAGE\n\t./204duck a\n";
+  $usage .= "\nDESCRIPTION\n\t";
+  $usage .= "a\tconstant\n";
+  echo $usage;
+}
+
+function error_handling($argv)
+{
+  if (!is_numeric($argv[1])) {
+    echo "Arguments must be numerical\n";
+    return (84);
+  }
+  if (floatval($argv[1]) < 0 || floatval($argv[1]) > 2.50) {
+    echo "Argument 'a' must be a real constant between 0 & 2.5\n";
+    return (84);
+  }
+  return (0);
+}
+
+function density($a, $t)
+{
+  $res = $a * exp($t * -1) + (4 - 3 * $a) * exp(-2 * $t) + (2 * $a - 4) * exp(-4 * $t);
+  return ($res);
+}
+
+function print_out($time99p, $time50p, $duck1min, $duck2min)
+{
+  printf("Time after which 50%% of the ducks are back: %dm %02.0fs\n", $time50p, ($time50p - intval($time50p)) * 60);
+  printf("Time after which 99%% of the ducks are back: %dm %02.0fs\n", $time99p, ($time99p - intval($time99p)) * 60);
+  printf("Percentage of ducks back after 1 minute: %.1f%%\n", intval($duck1min * 10) / 100);
+  printf("Percentage of ducks back after 2 minutes: %.1f%%\n", intval($duck2min * 10) / 100);
+}
+
+function calc_deviation($a, $esp)
+{
+  $test = 0; $t = 0; $percent = 0;
+  for ($t = 0.001; $percent <= 999.9990; $t += 0.001) {
+    $res = density($a, $t);
+    $test += ($t - $esp) * ($t - $esp) * $res;
+    $percent += $res;
+  }
+  $sq = sqrt($test / 1000);
+  printf("Standard deviation: %.3f\n", $sq);
+}
+
+function print_av($a, $average)
+{
+  $av = 100 * (($average - ($average) % 60) * 60);
+  $av = round($av);
+  printf("Average return time: %dm %02ds\n", $average % 60, round($av / 100));
+  calc_deviation($a, $average);
+}
+
+function ducks($a)
+{
+  $res = 0; $percent = 0; $duck1min = 0; $time50p = 0; $time99p = 0; $duck2min = 0; $average = 0;
+  for ($bool = 0, $boolm = 0, $t = 0.001; $percent <= 999.9990; $t += 0.001) {
+    $res = density($a, $t);
+    $average += $t * $res;
+    $percent += $res;
+    if ($boolm == 0 && $percent >= 500) {
+      $time50p = $t;
+      $boolm = 1;
+    }
+    if ($boolm == 1 && $percent >= 990) {
+      $time99p = $t;
+      $boolm = 2;
+    }
+    if ($t <= 1)
+      $duck1min += $res;
+    if ($t > 1 && $bool == 0) {
+      $duck1min = ($percent + $duck1min) / 2.0;
+      $bool = 1;
+    }
+    if ($t <= 2) 
+      $duck2min += $res;
+    if ($t > 2 && $bool == 1) {
+      $duck2min = ($percent + $duck2min) / 2.0;
+      $bool = 2;
+    }
+  }
+  print_av($a, $average / 1000);
+  print_out($time99p, $time50p, $duck1min, $duck2min);
+  echo $a;
+}
+
+function index($argc, $argv)
+{
+  if ($argc != 2)
+    return (84);
+  if (error_handling($argv) == 84)
+    return (84);
+  return (ducks(floatval($argv[1])));
+}
+
+$ret = index($argc, $argv);
+exit ($ret);
+?>
